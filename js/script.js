@@ -159,15 +159,6 @@ function updateNav(element) {
     }
 }
 
-document.querySelector(".hire-me").addEventListener("click", function () {
-    const sectionIndex = this.getAttribute("data-section-index");
-    console.log(sectionIndex)
-    showSection(this);
-    updateNav(this);
-    removeBackSectionClass();
-    addBackSectionClass(sectionIndex)
-})
-
 const navTogglerBtn = document.querySelector(".nav-toggler"),
     aside = document.querySelector(".aside");
 navTogglerBtn.addEventListener("click", asideSectionTogglerBtn)
