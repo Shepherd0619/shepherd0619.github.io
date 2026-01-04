@@ -11,6 +11,125 @@
 
   <link rel="stylesheet" href="css/skins/blue.css" type="text/css">
 
+  <!-- Google Translate Widget Styling -->
+  <style>
+    #google_translate_element {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 99999;
+      background: rgba(0, 0, 0, 0.9);
+      padding: 12px 15px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .translate-label {
+      color: #fff;
+      font-size: 14px;
+      font-weight: 500;
+      white-space: nowrap;
+      font-family: Arial, sans-serif;
+    }
+
+    #google_translate_element select {
+      background: #fff;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      cursor: pointer;
+      outline: none;
+    }
+
+    #google_translate_element select:hover {
+      background: #f0f0f0;
+    }
+
+    .goog-te-banner-frame.skiptranslate {
+      display: none !important;
+    }
+
+    body {
+      top: 0 !important;
+    }
+
+    .goog-te-gadget {
+      color: #fff !important;
+      font-family: Arial, sans-serif;
+      font-size: 0;
+    }
+
+    .goog-te-gadget .goog-te-combo {
+      margin: 0;
+      display: inline-block;
+    }
+
+    .goog-te-gadget-simple {
+      background-color: transparent !important;
+      border: none !important;
+    }
+
+    /* Style the Google Translate gadget */
+    .goog-te-gadget {
+      line-height: 1;
+    }
+
+    .goog-te-gadget img {
+      display: none !important;
+    }
+
+    .goog-te-gadget-simple .goog-te-menu-value span:first-child {
+      display: none;
+    }
+
+    .goog-te-gadget-simple .goog-te-menu-value:before {
+      content: 'Select Language';
+      color: #000;
+    }
+
+    .goog-te-menu-value {
+      color: #000 !important;
+    }
+
+    .goog-te-gadget-simple .goog-te-menu-value {
+      border: none !important;
+      background: #fff !important;
+      padding: 8px 12px !important;
+      border-radius: 4px !important;
+    }
+
+    .goog-te-gadget-simple .goog-te-menu-value:hover {
+      background: #f0f0f0 !important;
+    }
+
+    .goog-te-gadget-simple .goog-te-menu-value span {
+      color: #000 !important;
+    }
+
+    /* Responsive adjustment */
+    @media (max-width: 768px) {
+      #google_translate_element {
+        bottom: 15px;
+        right: 15px;
+        padding: 10px 12px;
+      }
+
+      #google_translate_element select {
+        font-size: 12px;
+        padding: 6px 10px;
+      }
+
+      .translate-label {
+        font-size: 12px;
+      }
+    }
+  </style>
+
   <!-- Live Style Switcher -->
   <link rel="stylesheet" class="alternate-style" title="blue" href="css/skins/blue.css" type="text/css" disabled>
   <link rel="stylesheet" class="alternate-style" title="pink" href="css/skins/pink.css" type="text/css" disabled>
@@ -22,6 +141,9 @@
 </head>
 
 <body class="dark">
+
+  <!-- Google Translate Widget -->
+  <div id="google_translate_element"></div>
 
   <!-- Main Container -->
   <div class="main-container">
@@ -751,6 +873,18 @@
 
   <!-- Live Style Switcher JavaScript-->
   <script src="js/styleSwitcher.js"></script>
+
+  <!-- Google Translate Script -->
+  <script type="text/javascript">
+    function googleTranslateElementInit() {
+      new google.translate.TranslateElement({
+        pageLanguage: 'zh-CN',
+        includedLanguages: 'en,zh-CN,zh-TW,ja,ko,fr,de,es,ru,ar,pt,it,nl,pl,tr,th,vi',
+        layout: google.translate.TranslateElement.InlineLayout.HORIZONTAL
+      }, 'google_translate_element');
+    }
+  </script>
+  <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 
 </body>
 
