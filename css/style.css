@@ -1120,6 +1120,49 @@ body.dark .shadow-dark {
   box-shadow: none;
 }
 
+/* Callout Styles */
+.callout {
+  padding: 15px 20px;
+  margin: 15px 0;
+  border-left: 4px solid #ddd;
+  background-color: #f9f9f9;
+  border-radius: 4px;
+}
+
+.callout strong {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.callout-warning {
+  border-left-color: #f0ad4e;
+  background-color: #fcf8e3;
+}
+
+.callout-warning {
+  color: #8a6d3b !important;
+}
+
+.callout-warning * {
+  color: inherit !important;
+}
+
+body.dark .callout {
+  background-color: #2a2a2a;
+  border-left-color: #555;
+}
+
+body.dark .callout-warning {
+  border-left-color: #f0ad4e;
+  background-color: #3a3020;
+  color: #f0ad4e !important;
+}
+
+body.dark .callout-warning * {
+  color: inherit !important;
+}
+
 /* ====================================================== */
 /* ---------------  Responsive Css Stared */
 /* ====================================================== */
