@@ -1148,6 +1148,16 @@ body.dark .shadow-dark {
   color: inherit !important;
 }
 
+.callout-info {
+  border-left-color: #2196f3;
+  background-color: #e3f2fd;
+  color: #1565c0 !important;
+}
+
+.callout-info * {
+  color: inherit !important;
+}
+
 body.dark .callout {
   background-color: #2a2a2a;
   border-left-color: #555;
@@ -1161,6 +1171,21 @@ body.dark .callout-warning {
 
 body.dark .callout-warning * {
   color: inherit !important;
+}
+
+body.dark .callout-info {
+  border-left-color: #2196f3;
+  background-color: #1a2a3a;
+  color: #90caf9 !important;
+}
+
+body.dark .callout-info * {
+  color: inherit !important;
+}
+
+body.dark .timeline-text b,
+body.dark .timeline-text strong {
+  color: inherit;
 }
 
 /* ====================================================== */
