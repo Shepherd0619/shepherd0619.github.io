@@ -1026,6 +1026,7 @@ select {
   width: 100%;
   max-height: 85vh;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 40px;
   cursor: default;
 }
@@ -1123,6 +1124,9 @@ select {
   padding: 0;
 }
 .blog-post-body table {
+  display: block;
+  overflow-x: auto;
+  max-width: 100%;
   width: 100%;
   border-collapse: collapse;
   margin-bottom: 16px;
@@ -1482,6 +1486,35 @@ body.dark .timeline-text strong {
   }
   .blog-filter button {
     margin-bottom: 10px;
+  }
+  /* Blog Lightbox: full-screen on mobile */
+  .blog-lightbox {
+    background-color: #f2f2fc;
+  }
+  .blog-lightbox .lightbox-content {
+    max-height: 100vh;
+    max-width: none;
+    border-radius: 0;
+    padding: 0 16px 20px;
+  }
+  .blog-lightbox .lightbox-close {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: block;
+    width: 100%;
+    text-align: right;
+    background: #fdf9ff;
+    padding: 8px 12px;
+    font-size: 28px;
+    margin: 0 0 8px 0;
+  }
+  body.dark .blog-lightbox {
+    background-color: #151515;
+  }
+  body.dark .blog-lightbox .lightbox-close {
+    background: #222222;
+    color: #fff;
   }
 }
 @media (max-width: 575px) {
