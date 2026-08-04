@@ -1,0 +1,24 @@
+---
+---
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">{{ title }}</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> {{ date | dateString }}</span>
+      <span class="blog-post-category category-{{ categories | categoryClass }}">{{ categories }}</span>
+    </div>
+    <div class="blog-post-tags">
+      {% for tag in tags %}
+      {% if tag != "post" %}
+      <span class="blog-post-tag">{{ tag }}</span>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </header>
+  <div class="blog-post-body">
+    {{ content | safe }}
+  </div>
+  <footer class="blog-post-footer">
+    <a href="{{ source }}" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

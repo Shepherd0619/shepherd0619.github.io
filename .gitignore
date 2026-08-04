@@ -1,0 +1,3 @@
+node_modules/
+.eleventy.cache/
+_site/

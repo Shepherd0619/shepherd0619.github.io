@@ -1,0 +1,222 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">退役本地 AD 同步后，Terraform 无法管理 Entra ID 用户？看这篇就够了</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2026-07-17</span>
+      <span class="blog-post-category category-it-运维">IT 运维</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Entra ID</span>
+      
+      
+      
+      <span class="blog-post-tag">Terraform</span>
+      
+      
+      
+      <span class="blog-post-tag">AD 同步</span>
+      
+      
+      
+      <span class="blog-post-tag">Microsoft 365</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <h3>背景</h3>
+<p>公司此前使用本地 Windows AD 作为用户主目录，通过 Microsoft Entra Cloud Sync（不是 Microsoft Entra Connect，可以理解为青春版）将用户同步到 Entra ID。随着 IT 基础设施全面上云，我们决定下线本地 AD，将所有用户转换为纯云端管理，并由 OpenTofu（Terraform）全权接管基础设施即代码。</p>
+<p>关闭 Cloud Sync 后运行 <code>tofu plan</code>，发现被同步过的用户出现如下错误：</p>
+<pre><code>Error: Could not update User
+
+unexpected status 400 (400 Bad Request) with error: Request_BadRequest:
+Unable to update the specified properties for objects that have originated
+within an external service.
+</code></pre>
+<p><strong>核心矛盾</strong>：即使 Cloud Sync 已经停用，Entra ID 仍然&quot;记得&quot;这些用户来自外部目录，拒绝 Terraform 对它们进行任何修改。</p>
+<h3>诊断过程</h3>
+<h4>Step 1：检查 immutableId</h4>
+<p>Cloud Sync 会为每个同步用户写入 <code>onPremisesImmutableId</code>，这是与本地 AD 对象的关联锚点：</p>
+<pre><code>Connect-MgGraph -Scopes &quot;User.ReadWrite.All&quot;
+
+Get-MgUser -UserId &quot;user@example.com&quot; \
+  -Property OnPremisesSyncEnabled,OnPremisesImmutableId |
+  Select-Object OnPremisesSyncEnabled, OnPremisesImmutableId
+
+# OnPremisesSyncEnabled :
+# OnPremisesImmutableId : fiITWgo2/ECR/rkgSZpRMA==
+
+
+powershell
+</code></pre>
+<h4>Step 2：尝试清除 immutableId（失败）</h4>
+<p>v1.0 API 不允许直接清空此属性：</p>
+<pre><code>Update-MgUser -UserId &quot;user@example.com&quot; -OnPremisesImmutableId $null
+
+# Error: Invalid value specified for property 'onPremisesImmutableId'
+
+
+powershell
+</code></pre>
+<p>用 beta API 绕过限制：</p>
+<pre><code>$body = @{ onPremisesImmutableId = $null } | ConvertTo-Json
+Invoke-MgGraphRequest -Method PATCH \
+  -Uri &quot;https://graph.microsoft.com/beta/users/&lt;object-id&gt;&quot; \
+  -Body $body -ContentType &quot;application/json&quot;
+
+
+powershell
+</code></pre>
+<p>成功清空了 immutableId，但 <strong>Terraform apply 依然报错</strong>。</p>
+<h4>Step 3：深入排查所有 on-premises 属性</h4>
+<p>immutableId 只是冰山一角。Cloud Sync 实际上写入了整套本地 AD 身份标识：</p>
+<pre><code>Get-MgUser -UserId &quot;user@example.com&quot; -Property \
+  onPremisesDistinguishedName, onPremisesDomainName,
+  onPremisesSamAccountName, onPremisesUserPrincipalName,
+  onPremisesSecurityIdentifier
+
+
+powershell
+</code></pre>
+<p>结果令人震惊——所有属性都还在：</p>
+<pre><code>onPremisesDistinguishedName  : CN=Zhang San,OU=Beijing Office,DC=corp,DC=local
+onPremisesDomainName         : corp.local
+onPremisesSamAccountName     : zhangsan
+onPremisesUserPrincipalName  : zhang.san@example.com
+onPremisesSecurityIdentifier : S-1-5-21-625977442-1185932894-852606376-1613
+</code></pre>
+<p><strong>根本原因</strong>：Entra ID 并非只看 <code>immutableId</code> 一个字段。只要 <code>onPremisesDistinguishedName</code> 中<strong>任意一个</strong>非空，该用户在目录层面就被标记为&quot;源自外部服务&quot;。这个判断是整体性的，与具体要修改哪个属性无关。</p>
+<h4>Step 4：批量清除所有 on-premises 属性（仍然失败）</h4>
+<p>API 返回成功，所有可见属性都变成了空字符串。但是——</p>
+<p><strong>Terraform apply 仍然报同样的错误！</strong></p>
+<p>这说明 Entra ID 目录层级存在不对外暴露的&quot;来源标记&quot;，即便清空了所有 on-premises 属性，内核依然认定该用户来源于外部同步服务。</p>
+<h4>另一种可能性：等 72 小时</h4>
+<p>Microsoft 官方文档 Turn off directory synchronization for Microsoft 365 提到：执行 <code>Update-MgOrganization -OnPremisesSyncEnabled $false</code> 关闭租户级目录同步后，微软后端会在 <strong>72 小时内</strong> 自动清理部分 on-premises 属性（<code>DnsDomainName</code>、<code>NetBiosName</code>、<code>OnPremisesDistinguishedName</code>、<code>OnPremisesSamAccountName</code>、<code>OnpremisesUserPrincipalName</code>）。</p>
+<p>理论上，如果你不急于恢复 Terraform 管理，这可能是最省事的方案。但需要注意：</p>
+<ul>
+<li>文档列出的清理属性<strong>不包含</strong> <code>onPremisesImmutableId</code> 和 <code>onPremisesSecurityIdentifier</code>，后端是否会一并清理未明确说明</li>
+<li><strong>我们未实际测试此方法</strong>，不确定 72 小时后是否一定能解决本文的错误</li>
+</ul>
+<p>如果你愿意等并且想验证，可以一试；如果不愿意冒险，直接用下面验证过的方法。</p>
+<h3>最终方案：软删除 + 从回收站还原</h3>
+<p>手动软删除后从回收站还原，是将同步用户转为云端用户的即时、已验证方法。</p>
+<h4>完整脚本</h4>
+<p>关键点：<strong>Object ID 保持不变</strong>，所以 Terraform state 中已有的资源引用无需更新。</p>
+<h4>批量处理</h4>
+<p>如果生产环境有多用户需要转换，可以写成循环：</p>
+<p>删除和还原之间有短暂的异步延迟，给每个用户留 5 秒足够。</p>
+<h4>验证</h4>
+<pre><code>tofu plan
+# Plan: 0 to add, N to change, 0 to destroy.
+# No errors — 成功！
+
+
+bash
+</code></pre>
+<h3>总结</h3>
+<table>
+<thead>
+<tr>
+<th>尝试的方法</th>
+<th>结果</th>
+<th>原因</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>关闭 Cloud Sync</td>
+<td>❌</td>
+<td>已有用户的同步标记不会自动清除</td>
+</tr>
+<tr>
+<td>清除 <code>onPremisesImmutableId</code></td>
+<td>❌</td>
+<td>还有其他 on-premises 属性在生效</td>
+</tr>
+<tr>
+<td>清除所有 on-premises 属性</td>
+<td>❌</td>
+<td>Entra ID 内部仍有不可见的来源标记</td>
+</tr>
+<tr>
+<td><strong>软删除 + 回收站还原</strong></td>
+<td>✅</td>
+<td>彻底重置用户身份，失去所有同步关联</td>
+</tr>
+</tbody>
+</table>
+<h3>经验教训</h3>
+<ol>
+<li><strong>退役 AD 同步前要做好规划</strong>：理想的做法是先在 Cloud Sync 中将用户移出同步范围，让同步引擎执行&quot;解绑&quot;流程。本文的场景是因为关闭同步较快而留下的技术债。</li>
+<li><strong>Object ID 是宝</strong>：删除 + 还原不会改变 Object ID，因此 Terraform state 中的 <code>id</code> 引用、组成员关系、角色分配、应用授权等全部自动保留。不需要 <code>tofu state mv</code> 或 <code>terraform import</code>。</li>
+<li><strong>密码策略</strong>：原来由 Cloud Sync 设置的 <code>passwordPolicies: DisablePasswordExpiration</code> 可能保留在用户身上，这不是问题——Terraform 可以在后续 <code>apply</code> 中按自己的配置改写它，此时不会再被拒绝。</li>
+<li><strong>权限要求</strong>：整个过程需要 <code>User.ReadWrite.All</code> 或更高级别的 Graph 权限。如果使用 Application 权限（而非 Delegated），还需额外的 <code>Directory.ReadWrite.All</code>。</li>
+<li><strong>推荐使用官方工具</strong>：Microsoft 提供了 <code>ADSyncTools</code> PowerShell 模块，内置 <code>Clear-ADSyncToolsOnPremisesAttribute</code> 和 <code>Get-ADSyncToolsOnPremisesAttribute</code> cmdlet，封装了本文手动调用的 beta API。安装方式：<code>Install-Module ADSyncTools</code>（最低 v2.5.0）。如果你在一个合规性要求较高的环境中，建议优先使用官方模块而非手动调用 beta API。详见 Clear on-premises attributes from migrated Microsoft Entra ID users。</li>
+</ol>
+<hr>
+<p><em>适用场景：从 Microsoft Entra Cloud Sync / Azure AD Connect 迁移到纯云端管理，使用 OpenTofu / Terraform 管理 Entra ID 用户</em></p>
+<h3>参考文档</h3>
+<table>
+<thead>
+<tr>
+<th>文档</th>
+<th>链接</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Clear on-premises attributes from migrated Microsoft Entra ID users</td>
+<td>https://learn.microsoft.com/entra/identity/hybrid/connect/tshoot-clear-on-premises-attributes</td>
+</tr>
+<tr>
+<td>Turn off directory synchronization for Microsoft 365</td>
+<td>https://learn.microsoft.com/microsoft-365/enterprise/turn-off-directory-synchronization</td>
+</tr>
+<tr>
+<td>Update user — Microsoft Graph v1.0 / beta</td>
+<td>https://learn.microsoft.com/graph/api/user-update</td>
+</tr>
+<tr>
+<td>Restore deleted item (directory) — Microsoft Graph</td>
+<td>https://learn.microsoft.com/graph/api/directory-deleteditems-restore</td>
+</tr>
+<tr>
+<td>Microsoft Graph PowerShell SDK — Users module</td>
+<td>https://learn.microsoft.com/powershell/module/microsoft.graph.users</td>
+</tr>
+<tr>
+<td>Troubleshoot Entra Connect sync errors (deletion access violation)</td>
+<td>https://learn.microsoft.com/entra/identity/hybrid/connect/tshoot-connect-sync-errors</td>
+</tr>
+<tr>
+<td>Configure user Source of Authority (SOA)</td>
+<td>https://learn.microsoft.com/entra/identity/hybrid/how-to-user-source-of-authority-configure</td>
+</tr>
+<tr>
+<td>MS Q&amp;A: Unable to update properties for on-premises mastered objects</td>
+<td>https://learn.microsoft.com/answers/a/1911300</td>
+</tr>
+<tr>
+<td>MS Q&amp;A: Converting a Synced User Object to Cloud-Only</td>
+<td>https://learn.microsoft.com/answers/a/1989480</td>
+</tr>
+<tr>
+<td>MS Q&amp;A: Convert a Directory Sync’d User to Cloud User</td>
+<td>https://learn.microsoft.com/answers/a/2055447</td>
+</tr>
+<tr>
+<td>MS Q&amp;A: Common issues after converting On Premise Users to the cloud</td>
+<td>https://learn.microsoft.com/answers/a/12613890</td>
+</tr>
+</tbody>
+</table>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/162972528" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

@@ -1,0 +1,88 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">Jenkins与自定义命令行参数</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2024-01-15</span>
+      <span class="blog-post-category category-unity-开发">Unity 开发</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Unity</span>
+      
+      
+      
+      <span class="blog-post-tag">Jenkins</span>
+      
+      
+      
+      <span class="blog-post-tag">CI/CD</span>
+      
+      
+      
+      <span class="blog-post-tag">命令行</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <p>Unity是一款功能强大的游戏开发引擎，它提供了许多方便开发者使用的功能和工具。其中一个非常有用的功能是Unity命令行参数。通过使用命令行参数，开发者可以在启动Unity时自定义一些行为和设置，从而更好地管理和调试项目。</p>
+<p>使用Unity命令行参数的好处是，它可以帮助开发者更好地管理和调试项目。通过在命令行中指定参数，我们可以自动化一些常见的任务，例如构建项目、执行测试、导出资源等。这不仅可以提高开发效率，还可以减少人为错误的发生。</p>
+<p>当然有些时候我们需要自己定义一个或者多个命令行参数，比如我们要启动一个服务器构建、接入一个CI/
+CD
+，人手动操作肯定费时费力，而且不熟悉Unity编辑器的新手难免会出错。</p>
+<h2>自带参数</h2>
+<p>首先，在自定义参数前，我们先看一下自带的命令行参数是否就能满足我们的要求。在启动Unity编辑器时，我们可以在命令行中添加参数来改变Unity的行为。这可以通过在命令行中输入&quot;Unity.exe -参数名 参数值&quot;来实现。下面是一些常见的Unity命令行参数的示例：</p>
+<ol>
+<li>
+<p>-batchmode：这个参数可以让Unity在无需用户交互的情况下启动并执行指定的任务。这对于自动化构建和
+持续集成
+非常有用。</p>
+</li>
+<li>
+<p>-quit：这个参数可以让Unity在启动后立即退出，适用于需要在启动时执行某些任务但不需要打开Unity编辑器的情况。</p>
+</li>
+<li>
+<p>-projectPath：这个参数可以指定Unity项目的路径。通过在命令行中指定项目路径，我们可以直接打开指定的项目而不需要手动选择。</p>
+</li>
+<li>
+<p>-executeMethod：这个参数可以指定在Unity启动后立即执行的方法。我们可以通过这个参数来自动运行一些脚本或者执行一些特定的操作。</p>
+</li>
+<li>
+<p>-nographics：这个参数可以让Unity在无需图形界面的情况下启动。这对于一些服务器或者非图形环境下的使用非常有用。</p>
+</li>
+</ol>
+<p>除了上述示例外，Unity还提供了许多其他的命令行参数，用于控制和定制Unity的行为。开发者可以根据自己的需求来选择和使用这些参数。更多自带参数请访问：</p>
+<p>Unity - Manual: Command-line arguments</p>
+<p><strong>一般来说，-executeMethod就能满足很多人的要求</strong>，这块可以执行一个静态类的静态函数或者方法，发挥空间很足够。**当然唯独问题是如果函数方法里有参数需要传递，那么这肯定歇菜。**如果你有这个需求，那么就往下看吧！</p>
+<h2>自定义参数</h2>
+<p>老规矩，情景教学！当然还是基于我之前的一个公共repo去讲</p>
+<p>GitHub - Shepherd0619/JenkinsBuildUnity: A little script that connect Unity (with HybridCLR hot update) and Jenkins together.</p>
+<p>假设你要自定义要打的场景及其顺序、打包目标地址，但是我们的Jenkins打包机不可能自己会打开Unity编辑器图形界面修改BuildSettings里的场景设置对吧。</p>
+<p>首先先在你的打包脚本（或者另起一个脚本放在Editor文件夹下），我们先获取一下传递进来的参数</p>
+<pre><code>1. // 获取命令行参数
+2. string[] args = Environment.GetCommandLineArgs();
+
+
+cs运行
+</code></pre>
+<p>拿到array以后，我们需要筛选出我们的自定义参数，你可以写一个方法</p>
+<p> 用法可参考如下</p>
+<p>如代码所示，至于怎么校验参数的有效性，要么判断是否为空，要么看长度，两项只要有一个有问题，那么直接return。</p>
+<h2>Jenkins侧</h2>
+<p>你可以在你Jenkins现有的Job上勾上This project is parameterized来配置参数。</p>
+<p><img src="/blog/images/25bd1578c11f.png" alt=""></p>
+<p>然后在拉起Unity编辑器那块引用上面的参数，如${上面在Jenkins定义的参数名}</p>
+<p><img src="/blog/images/280560a80a4e.png" alt=""></p>
+<p>保存设置后，以后执行job都会让你配置参数了</p>
+<p><img src="/blog/images/44bad8c2b84e.png" alt=""></p>
+<h2>总结</h2>
+<p>总结起来，Unity命令行参数是一种非常有用的工具，可以帮助开发者更好地管理和调试项目。通过使用命令行参数，我们可以在启动Unity时自定义一些行为和设置，从而提高开发效率和减少错误。希望本文对大家了解和使用Unity命令行参数以及如何自定义有所帮助。</p>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/135604418" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

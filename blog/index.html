@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>博客 · Shepherd Zhu</title>
+  <base target="_parent">
+  <style>
+    /* Inline minimal reset — the host page provides full styles */
+    body { margin: 0; font-family: "Montserrat", sans-serif; }
+    .blog-list-section { padding: 0; }
+  </style>
+</head>
+<body>
+  <div class="blog-list-section">
+    <!-- Filter bar -->
+    <div class="blog-filter">
+      <button type="button" class="active" data-filter="all">全部</button>
+      <button type="button" data-filter="IT 运维">IT 运维</button>
+      <button type="button" data-filter="Unity 开发">Unity 开发</button>
+      <button type="button" data-filter="Windows Server">Windows Server</button>
+      <button type="button" data-filter="其他">其他</button>
+    </div>
+
+    <!-- Post list -->
+    <div class="blog-post-list">
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="entra-id-cloud-only-conversion">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">退役本地 AD 同步后，Terraform 无法管理 Entra ID 用户？看这篇就够了</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Entra ID</span>
+            
+            
+            
+            <span>Terraform</span>
+            
+            
+            
+            <span>AD 同步</span>
+            
+            
+            
+            <span>Microsoft 365</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">背景  公司此前使用本地 Windows AD 作为用户主目录，通过 Microsoft Entra Cloud Sync（不是 Microsoft Entra Connect，可以理解为青春版）将用户同步到 Entra ID。随着 I...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2026-07-17
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="mariadb-to-postgresql-migration">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">记一次从 MariaDB 迁移到 PostgreSQL 的踩坑经历</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>MariaDB</span>
+            
+            
+            
+            <span>PostgreSQL</span>
+            
+            
+            
+            <span>数据库迁移</span>
+            
+            
+            
+            <span>运维</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">记一次从 MariaDB 迁移到 PostgreSQL 的踩坑经历  背景  上周末把自托管 Gitea 的数据库从本地 MariaDB 10.3 迁移到了云 RDS PostgreSQL 16。整个过程从评估到完成大约一小时，但中...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2026-07-11
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="apache-mod-remoteip-cloudflare">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">Apache 使用 mod_remoteip 恢复 Cloudflare 后的真实访客 IP</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Apache</span>
+            
+            
+            
+            <span>Cloudflare</span>
+            
+            
+            
+            <span>mod_remoteip</span>
+            
+            
+            
+            <span>运维</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前言  当你的网站使用 Cloudflare CDN 时，Apache 日志中记录的  IP   地址会变成 Cloudflare 代理节点的 IP，而不是访客的真实 IP。这会导致：  - 网站统计（如 Google Anal...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2026-06-16
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="tenant-config-api-backup-automation">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">使用 Tenant Configuration Management API 完成微软租户备份自动化</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Microsoft 365</span>
+            
+            
+            
+            <span>API</span>
+            
+            
+            
+            <span>租户备份</span>
+            
+            
+            
+            <span>自动化</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">背景  在企业级 Azure/Microsoft Entra ID 运维中，我们难免会使用 Terraform 和 M365 DSC 脚本等途径实现安全基准一致性和备份，今年微软推出了一个工作在 Graph 的、集备份和 Drift 监...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2026-04-23
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="tplink-usb-wifi-linux-pve-fix">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">解决 TP-Link USB 无线网卡在 Linux/PVE 下识别为存储设备的问题</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Linux</span>
+            
+            
+            
+            <span>PVE</span>
+            
+            
+            
+            <span>USB</span>
+            
+            
+            
+            <span>网卡驱动</span>
+            
+            
+            
+            <span>udev</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">在使用 Proxmox VE (PVE) 或  Ubuntu   虚拟机时，很多新款的 TP-Link 免驱 USB 无线网卡（如采用 **AIC8800** 芯片的型号）接入后，系统并不会将其识别为网卡（wlan），而是识别为一个“存...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2026-04-06
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="apache-reverse-proxy-unifi-controller">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">Apache 反向代理 UniFi Controller 的终极指北（解决白屏、502、400 错误）</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Apache</span>
+            
+            
+            
+            <span>UniFi</span>
+            
+            
+            
+            <span>反向代理</span>
+            
+            
+            
+            <span>网络</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前言  在软路由或 PVE 环境下搭建 UniFi Controller (自托管版) 是很多 Network Engineer 的常规操作。但如果你像我一样，希望通过一台链路较好的云服务器建立一个专网来统一管理远程设备，并且遭遇了 *...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2026-03-28
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Windows Server" data-slug="windows-admin-center-reverse-proxy">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">WAC 反向代理配置</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Windows Admin Center</span>
+            
+            
+            
+            <span>反向代理</span>
+            
+            
+            
+            <span>IIS</span>
+            
+            
+            
+            <span>ARR</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">如何为 Windows Admin Center 配置 Apache 反向代理  概述  众所周知，Windows Admin Center (WAC) 是微软提供的强大的 Windows  Server   管理工具，内网部署...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2026-03-02
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="entraradius-freeradius-entra-id-bridge">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">使用 EntraRadius 打通 FreeRADIUS 与 Microsoft Entra 的认证桥梁</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>FreeRADIUS</span>
+            
+            
+            
+            <span>Entra ID</span>
+            
+            
+            
+            <span>RADIUS</span>
+            
+            
+            
+            <span>认证</span>
+            
+            
+            
+            <span>Wi-Fi</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">引言  在企业网络环境中,传统的 RADIUS 认证协议仍然广泛应用于 VPN、WiFi 和 网络设备  的身份验证。然而,随着企业逐步迁移到云端,如何让这些传统网络设施能够使用 Microsoft 365 的云端身份进行认证,成为...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2026-03-02
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="macos-device-enrollment-intune">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">macOS 设备注册补录或转换</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>macOS</span>
+            
+            
+            
+            <span>Intune</span>
+            
+            
+            
+            <span>ABM</span>
+            
+            
+            
+            <span>设备注册</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">背景  笔者遇到一个需求，该组织有美国和中国两个办公室，美国办公室早期为了应付合规审查和省钱的目的，**给所有的苹果电脑设备做了 Intune 的“共享设备”（Shared device）的注册方式。中国办公室没有使用 MDM。** ...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2026-02-10
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="其他" data-slug="pve-windows-server-vm-performance">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">Windows Server虚拟机硬盘和网卡性能常见问题</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>PVE</span>
+            
+            
+            
+            <span>Windows Server</span>
+            
+            
+            
+            <span>虚拟化</span>
+            
+            
+            
+            <span>性能优化</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">背景  笔者有一个倍控软路由，其中有一个 Windows   Server放着域控和RRAS，系统IO延迟较高， 远程桌面  维护体验很差，也影响了下游的上网体验。如果还赶上了Windows Update，基本处于无法使用的状态...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2025-11-23
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="openvpn-ad-cs-offline-integration">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">OpenVPN与AD CS离线联动</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>OpenVPN</span>
+            
+            
+            
+            <span>AD CS</span>
+            
+            
+            
+            <span>证书服务</span>
+            
+            
+            
+            <span>Linux</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前言  笔者最近对一家企业的多个生产云服务器的网关入口进行证书更新，发现上面一直用的是easy rsa，该企业最近开始使用AD CS进行统一管理。  然而我注意到AD CS签发出来的证书，CRL地址均为LDAP协议，但生产环境的服务...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2025-04-16
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="linux-wpa3-enterprise-wifi-hotspot">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">使用Linux搭建企业证书认证的WiFi热点</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Linux</span>
+            
+            
+            
+            <span>Wi-Fi</span>
+            
+            
+            
+            <span>WPA3-Enterprise</span>
+            
+            
+            
+            <span>FreeRADIUS</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前置条件  - 无线网卡一张及其Linux驱动（若使用虚拟机做服务器，请使用USB外接无线网卡，并让其独占） - 可用的RADIUS服务器和证书环境。若使用微软NPS，建议证书Common Name为UPN或者OnPremDistin...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2025-02-28
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="其他" data-slug="vm-snapshot-restore-domain-login-fix">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">迁移/恢复快照后的Windows Server虚拟机无法域账号登录</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>VMware</span>
+            
+            
+            
+            <span>Windows Server</span>
+            
+            
+            
+            <span>域控</span>
+            
+            
+            
+            <span>快照</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">笔者最近在在调整AD证书环境时，误卸载了Web Enrollment，导致证书申请地址404，故恢复快照。  但恢复几天前的快照后，无法使用域账号登录桌面。  &gt;   根本原因为域控上的计算机账户哈希与本机不一致，或者快照时间点...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2025-02-14
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Windows Server" data-slug="windows-nps-radius-deployment">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">生产环境云和NPS快速搭建</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Windows Server</span>
+            
+            
+            
+            <span>NPS</span>
+            
+            
+            
+            <span>RADIUS</span>
+            
+            
+            
+            <span>802.1X</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前置条件  本文假定你已达成以下前提条件：  - 有域控DC。 - 有证书服务器（AD CS）。 - 已使用Microsoft Intune或者GPO为客户机申请证书。 - 服务器上至少有两张网卡（如果用虚拟机做的测试环境，可...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2025-02-02
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Windows Server" data-slug="win11-install-no-drive-detected">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">Win11安装向导不识别硬盘</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Windows 11</span>
+            
+            
+            
+            <span>部署</span>
+            
+            
+            
+            <span>驱动</span>
+            
+            
+            
+            <span>硬盘</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">默认情况下，如果引导用的boot.wim镜像取自Windows 11，大概率客户机会出现找不到硬盘报错  !  Microsoft Learn明确指明Windows 11的boot.wim已经将WDS屏蔽。  | Windows...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2024-12-04
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Unity 开发" data-slug="unity-ugui-z-sorting">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">UGUI和Z轴排序那点事儿</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>UGUI</span>
+            
+            
+            
+            <span>Canvas</span>
+            
+            
+            
+            <span>UI</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">如果读者是从Unity 4.x时代过来的，可能都用过NGUI这个插件（后来也是土匪成了正规军），NGUI一大特点是可以靠transform位移的Z值进行遮挡排序，然而这个事情在UGUI成了难题（Sorting Layer、Inspector...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2024-02-27
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Unity 开发" data-slug="unity-csharp-timestamp">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">时间戳</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>C#</span>
+            
+            
+            
+            <span>时间戳</span>
+            
+            
+            
+            <span>DateTime</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前言  时间戳在 计算机科学  和游戏设计中有着重要的意义。它是记录和比较时间的一种标准方式，经常用在网游的营销活动等，通过比较时间戳，可以确定是否在活动时间范围内诸如此类。一般来说它是一个long类型的数据。  可能也会有同志...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2024-01-29
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Unity 开发" data-slug="unity-jenkins-custom-cli-args">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">Jenkins与自定义命令行参数</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>Jenkins</span>
+            
+            
+            
+            <span>CI/CD</span>
+            
+            
+            
+            <span>命令行</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">Unity是一款功能强大的游戏开发引擎，它提供了许多方便开发者使用的功能和工具。其中一个非常有用的功能是Unity命令行参数。通过使用命令行参数，开发者可以在启动Unity时自定义一些行为和设置，从而更好地管理和调试项目。  使用Uni...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2024-01-15
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Unity 开发" data-slug="unity-webgl-local-file-access">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">WebGL读取本机硬盘上的文件</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>WebGL</span>
+            
+            
+            
+            <span>文件系统</span>
+            
+            
+            
+            <span>浏览器</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">由于浏览器的安全设置，System.IO的大部分功能都会受限。本文假设你要在Unity做一个头像上传的功能，这里我提供一个通过Unity和JavaScript实现的方法。  先在工程里起一个Plugins文件夹，用文本编辑器新建一个Fi...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2023-12-26
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Unity 开发" data-slug="unity-jenkins-build-machine">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">Unity与Jenkins打包机实战</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>Jenkins</span>
+            
+            
+            
+            <span>自动化打包</span>
+            
+            
+            
+            <span>DevOps</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前言  Jenkins是一个开源的 持续集成 工具，用人话来说就是**没有感情的打包机**。一般常见于公司 项目  用于持续交付。  可能有个人开发者对打包机很陌生或者不是很在意（比如在写这篇文章之前的我），项目小，本机写完...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2023-11-23
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="IT 运维" data-slug="apache-reverse-proxy-nextcloud">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">Apache反向代理Nextcloud实战</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Apache</span>
+            
+            
+            
+            <span>Nextcloud</span>
+            
+            
+            
+            <span>反向代理</span>
+            
+            
+            
+            <span>运维</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前言  自更换移动宽带，无公网IP苦不堪言，还好有云服务器，寻思借用云服务器的公网IP完成云服务器到家里NUC主机上的Nextcloud安装的访问。  这里，笔者假定读者已经正确安装Nextcloud，且启用了SSL证书，系统为RH...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2023-10-20
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Unity 开发" data-slug="unity-android-json-deserialization-get-set">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">get set引起的安卓下Json反序列化错误</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>C#</span>
+            
+            
+            
+            <span>Android</span>
+            
+            
+            
+            <span>Json</span>
+            
+            
+            
+            <span>序列化</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前言  今天一同事用Newtonsoft.Json解析Addressable里存放的角色服装Json文件，结果一直报键值相同的错误。Editor下一切正常，然而打到安卓上就不行了。解析出来的List数目都对的上，然而里面的数据都是空的或...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2023-10-18
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="其他" data-slug="fps-crosshair-projectile-spawn-design">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">论FPS游戏的准星工作原理及其Projectile发射位置的摆放</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>FPS</span>
+            
+            
+            
+            <span>游戏开发</span>
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>翻译</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">译者注  该文章出自stackexchange上的问答，答主比较详尽地解释了拟真、ESports竞技 类  、单机类射击游戏有关准星和Projectile发射位置的设计思路。由我给大家进行本地化翻译。  文中的超链接将会重定向到...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2023-10-12
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Unity 开发" data-slug="unity-singleton-best-practices">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">Singleton在Unity中的最佳实践</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>C#</span>
+            
+            
+            
+            <span>Singleton</span>
+            
+            
+            
+            <span>设计模式</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">序言  Singleton即单例，在C#中主要方便找一个脚本的实例。  在Unity中，一般给场景中的某个非常常用的脚本做成Singleton，这样其他脚本就方便找它，而不是每次用的时候FindObjectOfType或者在脚本里写...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2023-10-06
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Unity 开发" data-slug="unity-project-backup">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">如何优雅地备份Unity工程</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>备份</span>
+            
+            
+            
+            <span>版本管理</span>
+            
+            
+            
+            <span>Git</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">前言  不开玩笑的说，我在Reddit上看到过一个帖子，楼主问大家备份Unity工程的频率。  !2cad664e250041febf7a676630104293.jpg  我猜你看到这就已经开始笑了，别笑，当年你我都是这么过来...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2023-10-02
+        </div>
+      </div>
+      
+      <div class="blog-post-item" data-category="Unity 开发" data-slug="unity-android-build-env-setup">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">Unity Android打包环境快速部署</h3>
+          <div class="blog-post-item-tags">
+            
+            
+            
+            
+            <span>Unity</span>
+            
+            
+            
+            <span>Android</span>
+            
+            
+            
+            <span>打包</span>
+            
+            
+            
+            <span>SDK</span>
+            
+            
+          </div>
+          <p class="blog-post-item-summary">此文章献给所有不是通过Hub安装Unity 编辑器  的读者。  情景再现  我相信你有各种理由不通过Hub安装Unity编辑器，有的能说，有的不能说。你通过官方Download  Archive  下载所有你需要的安装包，...</p>
+        </div>
+        <div class="blog-post-item-date">
+          2023-09-28
+        </div>
+      </div>
+      
+    </div>
+  </div>
+</body>
+</html>

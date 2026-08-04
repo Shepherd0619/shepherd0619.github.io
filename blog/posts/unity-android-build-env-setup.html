@@ -1,0 +1,55 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">Unity Android打包环境快速部署</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2023-09-28</span>
+      <span class="blog-post-category category-unity-开发">Unity 开发</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Unity</span>
+      
+      
+      
+      <span class="blog-post-tag">Android</span>
+      
+      
+      
+      <span class="blog-post-tag">打包</span>
+      
+      
+      
+      <span class="blog-post-tag">SDK</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <p>此文章献给所有不是通过Hub安装Unity
+编辑器
+的读者。</p>
+<h2>情景再现</h2>
+<p>我相信你有各种理由不通过Hub安装Unity编辑器，有的能说，有的不能说。你通过官方Download
+Archive
+下载所有你需要的安装包，一顿操作，等到要打安卓包的时候，发现环境没配置。于是乎你装上了jdk，然后通过Android Studio下载Android SDK，结果Unity告诉你版本对不上，它要一个比较旧的platform tools。</p>
+<p>那咋办，你也不能卸掉Editor，通过Hub重装，这下载和安装的时间等不起，别担心，我有个好办法。</p>
+<h2>Android SDK Manager</h2>
+<p>Unity比较挑食，你得找到它要的tools，但是Android Developer官网有相当一部分不提供原来的下载地址了。但是Google给我们留下了后路，那就是独立的Android SDK Manager。</p>
+<p><img src="/blog/images/a92f01f4217e.png" alt=""></p>
+<p>可能网上不太好找了，可以上这里<br>
+下载 Android SDK 24.4.1 Windows 版 - Filehippo.com</p>
+<p>安装的时候会自动检测是否安装正确的JDK和JRE，通过以后，请务必选择**“仅为当前用户安装”，**否则安装完就是打不开SDK管理器。</p>
+<p>安装成功后，你应该就能看到这个界面了，首次启动可能会提示管理器已更新，那个无所谓。</p>
+<p><img src="/blog/images/23bbc3d2d035.png" alt=""></p>
+<p><strong>这里建议是根据你工程配置的最低安卓系统版本选。如果下载很慢的话，去Tools菜单改一下设置，强制把https定向到http就好了。</strong></p>
+<p>祝好运！</p>
+<p>（原文最早发布于本人X账号，2023年9月21日）</p>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/133384929" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

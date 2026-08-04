@@ -1,0 +1,48 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">UGUI和Z轴排序那点事儿</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2024-02-27</span>
+      <span class="blog-post-category category-unity-开发">Unity 开发</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Unity</span>
+      
+      
+      
+      <span class="blog-post-tag">UGUI</span>
+      
+      
+      
+      <span class="blog-post-tag">Canvas</span>
+      
+      
+      
+      <span class="blog-post-tag">UI</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <p>如果读者是从Unity 4.x时代过来的，可能都用过NGUI这个插件（后来也是土匪成了正规军），NGUI一大特点是可以靠transform位移的Z值进行遮挡排序，然而这个事情在UGUI成了难题（Sorting Layer、Inspector顺序等因素综合作为遮挡前置条件）。</p>
+<p><img src="/blog/images/feec6fcb28aa.png" alt=""></p>
+<p>如图所示，现在我们有三个Image，白红蓝。在Inspector中的顺序如下：</p>
+<p><img src="/blog/images/547feb089c7c.png" alt=""></p>
+<p>如果我们尝试让白色遮挡红色，按照NGUI的做法，我们把红色的Z值改为50，然而这种做法在UGUI直接现场寄。</p>
+<p><img src="/blog/images/c1e7ff4221db.png" alt=""></p>
+<p><img src="/blog/images/f9c5b2dc6ed5.png" alt=""></p>
+<p>其中一种解决办法是改一下Inspector顺序。</p>
+<p><img src="/blog/images/352a845f0510.png" alt=""></p>
+<p>至于如果想动态地调整顺序，你可以参考如下代码：</p>
+<p>效果如图：</p>
+<p><img src="/blog/images/0a9067702492.gif" alt=""></p>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/136326983" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

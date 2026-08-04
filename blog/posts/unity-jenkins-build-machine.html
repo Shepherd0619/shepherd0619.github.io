@@ -1,0 +1,85 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">Unity与Jenkins打包机实战</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2023-11-23</span>
+      <span class="blog-post-category category-unity-开发">Unity 开发</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Unity</span>
+      
+      
+      
+      <span class="blog-post-tag">Jenkins</span>
+      
+      
+      
+      <span class="blog-post-tag">自动化打包</span>
+      
+      
+      
+      <span class="blog-post-tag">DevOps</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <h2>前言</h2>
+<p>Jenkins是一个开源的
+持续集成
+工具，用人话来说就是<strong>没有感情的打包机</strong>。一般常见于公司
+项目
+用于持续交付。</p>
+<p>可能有个人开发者对打包机很陌生或者不是很在意（比如在写这篇文章之前的我），项目小，本机写完本机打，甚至能边写边打，也没觉得怎么样。直到后来打包卡电脑没法做其他事情的时候，是时候单拎出来个电脑做个打包机了，要不耽误事情。</p>
+<h2>Jenkins侧</h2>
+<h3>安装</h3>
+<p><img src="/blog/images/476413d801e3.png" alt=""></p>
+<p>前往官网下载安装，有国内下载站，直接下
+Windows
+的LTS版本即可。</p>
+<p><img src="/blog/images/8624f06d23f3.png" alt=""></p>
+<p>接着就按照安装向导一步一步走，直到你进入Jenkins的WebUI界面。</p>
+<p><img src="/blog/images/6edc8efd7651.png" alt=""></p>
+<p>现在请点击左侧Manage Jenkins，然后点右侧的Plugins。</p>
+<p><img src="/blog/images/aeed3c481208.png" alt=""></p>
+<p>单击左侧的Available Plugins，搜索Unity并安装。</p>
+<h3>配置</h3>
+<p>接下来需要告诉Jenkins你的Unity编辑器安装在哪里。</p>
+<p>回到Manage Jenkins，点开Tools，一直下拉到底部添加安装</p>
+<p><img src="/blog/images/452eca42196e.png" alt=""></p>
+<p><img src="/blog/images/aeaad438e537.png" alt=""></p>
+<h3>创建工程</h3>
+<p><img src="/blog/images/44f971eb0517.png" alt=""></p>
+<p>选择Freestyle project，写好名字点击OK</p>
+<p><img src="/blog/images/6418f81504e4.png" alt=""></p>
+<p>这些选项你可以根据个人喜好配置，包括Github库位置（若需要更新CI/CD状态）、Git账号啥的。</p>
+<p>但建议打开时间戳log和打包无响应自动叫停。</p>
+<p><img src="/blog/images/e2f09c35d60d.png" alt=""></p>
+<p>Build Steps那里添加指令，通过命令行启动Unity编辑器进行后台打包编译。</p>
+<p>命令行参数可参考如下：</p>
+<pre><code>-projectPath &quot;工程路径&quot; -nographics -batchmode -quit -executeMethod JenkinsBuild.BuildWindows64 &quot;${JOB_Name}&quot; &quot;工程打包存放位置\${BUILD_NUMBER}\output&quot;
+</code></pre>
+<p>至此，Jenkins配置告一段落，接下来需要写一个和Jenkins联调的Unity编辑器脚本。</p>
+<h2>Unity侧</h2>
+<h3>联调脚本</h3>
+<p>在你的工程下，在Assets
+文件夹
+下创建Editor文件夹，然后再创建一个JenkinsBuild.cs脚本，内容可参考如下：</p>
+<p>至此Unity侧配置完毕</p>
+<h2>开始打包</h2>
+<p><img src="/blog/images/ab48cd596c5c.png" alt=""></p>
+<p>现在你可以单击Build Now开始打包，也请注意，<strong>Jenkins显示的打包成功状态并不是很准</strong>，如果Unity工程那里出现了C#脚本语法错误等，Jenkins大概率是不会识别出来这是个错误的，<strong>因为Unity只要不是编辑器进程退出的过程中出了阻断性问题，Jenkins就会认为我正常走完了没有什么问题。</strong></p>
+<p><img src="/blog/images/9df4a2fe6b3a.png" alt=""></p>
+<p>所以<strong>每次打完包记得一定要看log确认。</strong></p>
+<p><img src="/blog/images/5ec02199b1b5.png" alt=""></p>
+<p>Happy programming!</p>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/134577153" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

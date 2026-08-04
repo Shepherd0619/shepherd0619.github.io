@@ -1,0 +1,168 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">记一次从 MariaDB 迁移到 PostgreSQL 的踩坑经历</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2026-07-11</span>
+      <span class="blog-post-category category-it-运维">IT 运维</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">MariaDB</span>
+      
+      
+      
+      <span class="blog-post-tag">PostgreSQL</span>
+      
+      
+      
+      <span class="blog-post-tag">数据库迁移</span>
+      
+      
+      
+      <span class="blog-post-tag">运维</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <h2>记一次从 MariaDB 迁移到 PostgreSQL 的踩坑经历</h2>
+<h3>背景</h3>
+<p>上周末把自托管 Gitea 的数据库从本地 MariaDB 10.3 迁移到了云 RDS PostgreSQL 16。整个过程从评估到完成大约一小时，但中间踩了几个坑，导致服务出现了几分钟的不可用。本文记录一下遇到的问题和经验，希望能帮到有同样需求的同学。</p>
+<h3>环境概况</h3>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>迁移前</th>
+<th>迁移后</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>数据库引擎</td>
+<td>MariaDB 10.3</td>
+<td>PostgreSQL 16</td>
+</tr>
+<tr>
+<td>数据量</td>
+<td>~120 MB，110 张表</td>
+<td>不变</td>
+</tr>
+<tr>
+<td>部署方式</td>
+<td>本地自建</td>
+<td>云 RDS 托管</td>
+</tr>
+<tr>
+<td>数据库名</td>
+<td>gitea</td>
+<td>gitea（不变）</td>
+</tr>
+</tbody>
+</table>
+<h3>迁移方案选择</h3>
+<p>摆在我面前的有几条路：</p>
+<ol>
+<li><strong>Gitea 自带的 dump-restore 命令</strong> — <code>gitea dump</code> 导出 + <code>gitea restore</code> 导入，但跨数据库引擎的支持不明确</li>
+<li><strong>pgloader</strong> — 专门做 MySQL→PG 迁移的工具，理论上是最佳选择</li>
+<li><strong>手动迁移</strong> — Gitea 自动建表 + Python 脚本搬数据</li>
+</ol>
+<p>我一开始选了 pgloader，结果连踩两个坑后发现它在这种场景下根本跑不通。</p>
+<h3>坑 1：云 RDS PostgreSQL 的 Schema 创建限制</h3>
+<p>pgloader 的迁移流程是先创建 schema（默认以数据库名命名），再创建表、导数据。但云 RDS PostgreSQL 的数据库 owner 是云厂商的系统账户（如 AWS RDS 的 <code>rdsadmin</code>、
+阿里云
+的 <code>aurora</code>），即使用 Super 账号登录，也无法在非自己所有的数据库中 <code>CREATE SCHEMA</code>。</p>
+<pre><code>ERROR: permission denied for database gitea
+</code></pre>
+<p>pgloader 即使设置 <code>create no tables</code>，仍然会在迁移开始前查找与数据库同名的 schema，找不到就报错。这个行为没有参数可以跳过。</p>
+<p><strong>教训</strong>：使用云 RDS 时，pgloader 的跨引擎自动迁移基本不可行。要么先用 pg_dump/pg_restore 手动建 schema，要么换其他方案。</p>
+<h3>坑 2（重大）：PostgreSQL Sequence 未同步</h3>
+<p>这是本次迁移最核心的故障。</p>
+<h4>现象</h4>
+<p>Gitea 启动后 Web UI 正常显示（200 OK），仓库列表、代码浏览都没问题。但当我 push 一个 feature branch 时，post-receive hook 返回 <strong>500 Internal Server Error</strong>，branch 创建失败。</p>
+<h4>排查</h4>
+<p>查看 Gitea 日志，报错是：</p>
+<pre><code>duplicate key value violates unique constraint &quot;branch_pkey&quot;
+ERROR: duplicate key value violates unique constraint &quot;branch_pkey&quot;
+DETAIL: Key (id)=(4) already exists.
+</code></pre>
+<p>一看就明白了：<code>branch_id_seq</code> 的当前值是 3，但 <code>branch</code> 表中 <code>MAX(id)</code> 已经是 1413。<code>nextval('branch_id_seq')</code> 返回 4 → 主键冲突。</p>
+<h4>根因</h4>
+<p>从 MariaDB 批量迁移数据时，行数据（含自增 ID）被原样复制过来了，但 PostgreSQL 的 <strong>sequences 没有被同步</strong>。</p>
+<p>MariaDB 的 <code>AUTO_INCREMENT</code> 是表级别的属性，MySQL dump 时会自动带上当前值。而 PostgreSQL 的 <code>SERIAL</code>/<code>BIGSERIAL</code> 是 sequence 对象，独立于表数据。用 Python 脚本、pgloader 等手动迁移工具时，如果不显式调用 <code>setval()</code>，所有的 sequences 都会停留在初始值。</p>
+<p>我一开始只修了 <code>branch_id_seq</code>，push 测试通过了就没管其他的。结果用户在网页上创建 Pull Request 时又 500 了——因为 <strong>100 个 sequences 全都没同步</strong>，不只是 <code>branch</code>。</p>
+<h4>修复</h4>
+<p><strong>教训</strong>：</p>
+<ul>
+<li><code>pg_dump</code>/<code>pg_restore</code> 会自动处理 sequence 同步，但手动迁移工具（Python 脚本、pgloader）不会</li>
+<li>跨引擎迁移后，<strong>必须验证所有 sequences</strong>，不能只修第一个报错的</li>
+<li>可以用 <code>SELECT * FROM pg_sequences WHERE schemaname = 'public'</code> 查看所有 sequence 状态</li>
+</ul>
+<h3>坑 3：迁移期间的外部因素叠加</h3>
+<p>修复 sequences 时，服务器突然变得完全无响应（
+Cloudflare
+返回 502 Bad Gateway）。SSH 连上去一看，load average <strong>28.83</strong>（2 核机器），iowait <strong>82%</strong>。</p>
+<p>元凶是一个卡死的进程（<code>D</code> 状态，不可中断睡眠），占满了磁盘 I/O。这个进程跟数据库迁移完全无关——是之前某个
+Jenkins
+job 残留的 <code>terraform</code> 进程。修复 sequences 触发了额外的数据库写操作，叠加原有的 I/O 饱和，直接把服务打挂了。</p>
+<p><code>kill -9</code> 之后，load 在 5 分钟内从 28 降到 3.5，服务恢复。</p>
+<p><strong>教训</strong>：</p>
+<ul>
+<li>维护操作前检查服务器状态（<code>top</code>、<code>iostat</code>），确认没有异常进程</li>
+<li>迁移数据库的同时产生大量 DB 写操作，会放大已有的 I/O 问题</li>
+<li>业务操作和运维操作在同一台机器上时，故障会相互放大</li>
+</ul>
+<h3>经验总结</h3>
+<h4>迁移流程建议</h4>
+<p>跨引擎数据迁移的正确姿势：</p>
+<ol>
+<li><strong>在目标库建好 schema</strong> — 让 Gitea（或目标应用）自己在 PG 上跑 migration，保证 DDL 与代码版本一致。不要手动翻译 MySQL DDL</li>
+<li><strong>只搬数据，不搬 schema</strong> — 用 Python/Go 脚本逐表 <code>INSERT INTO ... SELECT * FROM ...</code></li>
+<li><strong>修正 sequences</strong> — 数据迁移后立即用 <code>setval()</code> 同步所有 sequences</li>
+<li><strong>验证读写</strong> — 不只是看列表页，要测创建（INSERT）、编辑（UPDATE）、删除（DELETE）等写操作</li>
+<li><strong>监控服务器状态</strong> — 维护期间持续关注 CPU、内存、磁盘 I/O</li>
+</ol>
+<h4>为什么不能让 Gitea 直接用 pgloader 迁移</h4>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>pgloader 预期</th>
+<th>云 RDS 实际情况</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>CREATE SCHEMA</td>
+<td>需要</td>
+<td>禁止（非 owner）</td>
+</tr>
+<tr>
+<td>数据库 owner</td>
+<td>迁移用户</td>
+<td>云厂商系统账户</td>
+</tr>
+<tr>
+<td>表结构翻译</td>
+<td>pgloader 自动</td>
+<td>Gitea 的 DDL 更准确</td>
+</tr>
+</tbody>
+</table>
+<p>让 Gitea 自己在 PG 上建表，保证了字段类型、默认值、索引都与 Gitea 版本精确匹配，比任何自动翻译工具都靠谱。</p>
+<h4>最重要的一个提醒</h4>
+<blockquote>
+<p><strong>跨数据库引擎迁移后，一定要同步 sequences！</strong></p>
+</blockquote>
+<p>这个坑不限于 Gitea，任何使用自增主键的 PostgreSQL 数据库，只要经历了手动数据批量导入，都必须做这一步。记住了能省很多排查时间。</p>
+<hr>
+<p><em>迁移日期：2026-07-11 | 目标引擎：PostgreSQL 16（云 RDS） | 源引擎：MariaDB 10.3</em></p>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/162787412" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

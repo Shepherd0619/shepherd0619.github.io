@@ -1,0 +1,65 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">Win11安装向导不识别硬盘</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2024-12-04</span>
+      <span class="blog-post-category category-windows-server">Windows Server</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Windows 11</span>
+      
+      
+      
+      <span class="blog-post-tag">部署</span>
+      
+      
+      
+      <span class="blog-post-tag">驱动</span>
+      
+      
+      
+      <span class="blog-post-tag">硬盘</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <p>默认情况下，如果引导用的boot.wim镜像取自Windows 11，大概率客户机会出现找不到硬盘报错</p>
+<p><img src="/blog/images/c8871f39ae4d.png" alt=""></p>
+<p>Microsoft Learn明确指明Windows 11的boot.wim已经将WDS屏蔽。</p>
+<table>
+<thead>
+<tr>
+<th>Windows Version being deployed</th>
+<th>Boot.wim from Windows 10</th>
+<th>Boot.wim from Windows Server 2016</th>
+<th>Boot.wim from Windows Server 2019</th>
+<th>Boot.wim from Windows Server 2022</th>
+<th>Boot.wim from Windows 11</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Windows 11</strong></td>
+<td>Not supported, blocked.</td>
+<td>Not supported, blocked.</td>
+<td>Not supported, blocked.</td>
+<td>Not supported, blocked.</td>
+<td>Not supported, blocked.</td>
+</tr>
+</tbody>
+</table>
+<p>Windows Deployment Services (WDS) boot.wim support | Microsoft Learn</p>
+<p>可用的workaround为使用Windows 10镜像的boot.wim做引导，而安装文件使用Win11的install.wim。</p>
+<p>最好是使用MDT做Task Sequence,导出来wim启动映像放到WDS里。</p>
+<p>Download Microsoft Deployment Toolkit (MDT) from Official Microsoft Download Center</p>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/144226194" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

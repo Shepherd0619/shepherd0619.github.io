@@ -1,0 +1,151 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">WAC 反向代理配置</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2026-03-02</span>
+      <span class="blog-post-category category-windows-server">Windows Server</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Windows Admin Center</span>
+      
+      
+      
+      <span class="blog-post-tag">反向代理</span>
+      
+      
+      
+      <span class="blog-post-tag">IIS</span>
+      
+      
+      
+      <span class="blog-post-tag">ARR</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <h2>如何为 Windows Admin Center 配置 Apache 反向代理</h2>
+<h3>概述</h3>
+<p>众所周知，Windows Admin Center (WAC) 是微软提供的强大的 Windows
+Server
+管理工具，内网部署确实爽，但难免会有公网访问作为跳板机的需求，只可惜其反向代理情景下 limitation 之多（如频繁要求登录、不能在网站某个子目录下代理WAC），令人咂舌。</p>
+<p>本文将介绍如何在
+Linux
+服务器上使用 Apache 配置反向代理，让 WAC 可以通过自定义域名和 Let’s Encrypt SSL 证书进行安全访问。</p>
+<h3>环境说明</h3>
+<ul>
+<li><strong>反向代理服务器</strong>: Linux (运行 Apache)</li>
+<li><strong>WAC 后端服务器</strong>: 172.25.25.54:443，有内网证书，但是未加域的电脑无法信任证书。</li>
+<li><strong>域名</strong>: wac.example.com</li>
+<li><strong>SSL 证书</strong>: Let’s Encrypt</li>
+</ul>
+<h3>配置步骤</h3>
+<h4>1. 启用必要的 Apache 模块</h4>
+<p>首先需要确保启用了以下 Apache 模块：</p>
+<pre><code>sudo a2enmod ssl
+sudo a2enmod proxy
+sudo a2enmod proxy_http
+sudo a2enmod proxy_wstunnel
+sudo a2enmod headers
+sudo a2enmod rewrite
+
+
+bash
+</code></pre>
+<h4>2. 配置 VirtualHost</h4>
+<p>在 Apache SSL 配置文件中添加以下 VirtualHost 配置（通常是 <code>/etc/httpd/conf.d/ssl.conf</code> 或 <code>/etc/apache2/sites-available/ssl.conf</code>）：</p>
+<h4>3. 配置说明</h4>
+<h5>SSL 配置</h5>
+<ul>
+<li>使用 Let’s Encrypt 证书提供 HTTPS 加密</li>
+<li><code>SSLProxyEngine on</code> 启用后端 SSL 代理</li>
+<li>由于 WAC 使用自签名证书，需要禁用证书验证</li>
+</ul>
+<h5>代理设置</h5>
+<ul>
+<li><code>ProxyPreserveHost on</code> - <strong>关键设置</strong>！保留原始 Host 头，让后端知道请求的域名</li>
+<li><code>ProxyRequests off</code> - 禁用正向代理，只启用反向代理</li>
+</ul>
+<h5>NTLM 支持</h5>
+<pre><code>SetEnv proxy-nokeepalive 0
+SetEnv proxy-initial-not-pooled 1
+
+
+apache
+</code></pre>
+<p>这两个设置对于 Windows 身份验证（NTLM）至关重要：</p>
+<ul>
+<li>保持连接活跃，不使用 Keep-Alive</li>
+<li>确保初始连接不使用连接池</li>
+</ul>
+<h5>WebSocket 支持</h5>
+<p>WAC 大量使用 WebSocket 进行实时通信，需要特殊的重写规则：</p>
+<pre><code>RewriteCond %{HTTP:Upgrade} websocket [NC]
+RewriteCond %{HTTP:Connection} upgrade [NC]
+RewriteRule ^/(.*)$ wss://172.25.25.54:443/$1 [P,L]
+
+
+apache
+</code></pre>
+<h4>4. 测试和重载配置</h4>
+<p>检查配置语法：</p>
+<pre><code>sudo apachectl configtest
+
+
+bash
+</code></pre>
+<p>如果显示 “Syntax OK”，重载 Apache：</p>
+<pre><code>sudo systemctl reload httpd
+# 或
+sudo apachectl graceful
+
+
+bash
+</code></pre>
+<h4>5. 防火墙配置</h4>
+<p>确保防火墙允许 443 端口：</p>
+<pre><code>sudo firewall-cmd --permanent --add-service=https
+sudo firewall-cmd --reload
+
+
+bash
+</code></pre>
+<h3>常见问题排查</h3>
+<h4>问题 1: 访问显示 Apache 默认页面</h4>
+<p><strong>原因</strong>: <code>ProxyPreserveHost</code> 设置为 <code>Off</code></p>
+<p><strong>解决方案</strong>: 确保设置为 <code>ProxyPreserveHost on</code>，这样后端服务器才能收到正确的 Host 头。</p>
+<h4>问题 2: WebSocket 连接失败</h4>
+<p><strong>症状</strong>: WAC 部分功能无法使用，控制台显示 WebSocket 错误</p>
+<p><strong>解决方案</strong>:</p>
+<ol>
+<li>确保启用了 <code>proxy_wstunnel</code> 模块</li>
+<li>检查 WebSocket 重写规则是否正确配置</li>
+</ol>
+<h4>问题 3: Windows 身份验证失败</h4>
+<p><strong>症状</strong>: 无法登录或频繁要求输入凭据</p>
+<p><strong>解决方案</strong>: 确保设置了 NTLM 相关的环境变量：</p>
+<pre><code>SetEnv proxy-nokeepalive 0
+SetEnv proxy-initial-not-pooled 1
+
+
+apache
+</code></pre>
+<h3>总结</h3>
+<p>通过以上配置，您可以成功地为 Windows Admin Center 配置 Apache 反向代理。关键点包括：</p>
+<ul>
+<li>✅ 启用 SSL 和代理模块</li>
+<li>✅ 配置 <code>ProxyPreserveHost on</code> 保留主机头</li>
+<li>✅ 支持 NTLM 身份验证</li>
+<li>✅ 启用 WebSocket 支持</li>
+<li>✅ 使用 Let’s Encrypt 证书</li>
+</ul>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/156699031" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>
