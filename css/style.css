@@ -1499,19 +1499,17 @@ body.dark .timeline-text strong {
     left: 0;
     right: 0;
     bottom: 0;
+    display: flex;
+    flex-direction: column;
     animation: none;
     max-height: none;
     max-width: none;
     border-radius: 0;
-    padding: 52px 16px 20px;
-    overflow-y: auto;
-    overflow-x: hidden;
+    padding: 0;
+    overflow: hidden;
   }
   .blog-lightbox .lightbox-close {
-    position: fixed;
-    top: 0;
-    right: 0;
-    z-index: 20;
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: flex-end;
@@ -1522,6 +1520,12 @@ body.dark .timeline-text strong {
     padding: max(0px, env(safe-area-inset-top)) 12px 0;
     font-size: 28px;
     border-bottom: 1px solid #e8dfec;
+  }
+  .blog-lightbox .blog-lightbox-inner {
+    flex: 1;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 16px 20px;
   }
   body.dark .blog-lightbox {
     background-color: #151515;
