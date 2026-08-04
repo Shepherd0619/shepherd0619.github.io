@@ -7,7 +7,3 @@
 *.svg binary
 *.woff binary
 *.woff2 binary
-blog/images/*.png filter=lfs diff=lfs merge=lfs -text
-blog/images/*.jpg filter=lfs diff=lfs merge=lfs -text
-blog/images/*.gif filter=lfs diff=lfs merge=lfs -text
-images/portfolio/*.jpg filter=lfs diff=lfs merge=lfs -text
