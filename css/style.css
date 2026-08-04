@@ -1502,21 +1502,25 @@ body.dark .timeline-text strong {
     max-height: none;
     max-width: none;
     border-radius: 0;
-    padding: 0 16px 20px;
+    padding: 52px 16px 20px;
     overflow-y: auto;
     overflow-x: hidden;
   }
   .blog-lightbox .lightbox-close {
-    position: sticky;
+    position: fixed;
     top: 0;
-    z-index: 10;
-    display: block;
+    right: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
     width: 100%;
-    text-align: right;
+    height: 44px;
+    line-height: 44px;
     background: #fdf9ff;
-    padding: max(8px, env(safe-area-inset-top)) 12px 8px;
+    padding: max(0px, env(safe-area-inset-top)) 12px 0;
     font-size: 28px;
-    margin: 0 0 8px 0;
+    border-bottom: 1px solid #e8dfec;
   }
   body.dark .blog-lightbox {
     background-color: #151515;
@@ -1524,6 +1528,7 @@ body.dark .timeline-text strong {
   body.dark .blog-lightbox .lightbox-close {
     background: #222222;
     color: #fff;
+    border-bottom-color: #393939;
   }
 }
 @media (max-width: 575px) {
