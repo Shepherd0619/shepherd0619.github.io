@@ -1,0 +1,244 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">Apache 使用 mod_remoteip 恢复 Cloudflare 后的真实访客 IP</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2026-06-16</span>
+      <span class="blog-post-category category-it-运维">IT 运维</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Apache</span>
+      
+      
+      
+      <span class="blog-post-tag">Cloudflare</span>
+      
+      
+      
+      <span class="blog-post-tag">mod_remoteip</span>
+      
+      
+      
+      <span class="blog-post-tag">运维</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <h3>前言</h3>
+<p>当你的网站使用 Cloudflare CDN 时，Apache 日志中记录的
+IP
+地址会变成 Cloudflare 代理节点的 IP，而不是访客的真实 IP。这会导致：</p>
+<ul>
+<li>网站统计（如 Google Analytics）失去精确度</li>
+<li>无法根据 IP 进行地域分析</li>
+<li>防火墙/WAF 规则无法准确拦截</li>
+<li>日志审计追踪困难</li>
+</ul>
+<p>Cloudflare 早已弃用 <code>mod_cloudflare</code> 模块，官方推荐使用 Apache 内置的 <strong><code>mod_remoteip</code></strong> 来解决这个问题。</p>
+<p>本文基于 <strong>Rocky Linux 8.10 + Apache 2.4.37</strong> 环境，完整记录配置过程。</p>
+<hr>
+<h3>环境说明</h3>
+<table>
+<thead>
+<tr>
+<th>项目</th>
+<th>信息</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>操作系统</td>
+<td>Rocky Linux 8.10 (Green Obsidian)</td>
+</tr>
+<tr>
+<td>Web 服务器</td>
+<td>Apache 2.4.37</td>
+</tr>
+<tr>
+<td>模块状态</td>
+<td><code>mod_remoteip</code> 已加载，未配置</td>
+</tr>
+<tr>
+<td>目标</td>
+<td>恢复 Cloudflare 后的真实访客 IP</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h3>第一步：检查 mod_remoteip 模块</h3>
+<pre><code># 检查模块是否已加载
+httpd -M | grep remoteip
+
+
+bash
+</code></pre>
+<p>输出 <code>remoteip_module (shared)</code> 表示模块已启用。如果未加载，在 <code>/etc/httpd/conf.modules.d/</code> 中添加：</p>
+<pre><code>LoadModule remoteip_module modules/mod_remoteip.so
+
+
+apache
+</code></pre>
+<hr>
+<h3>第二步：创建 remoteip 配置文件</h3>
+<p>创建 <code>/etc/httpd/conf.d/remoteip.conf</code>：</p>
+<h4>关键指令说明</h4>
+<table>
+<thead>
+<tr>
+<th>指令</th>
+<th>作用</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RemoteIPHeader</code></td>
+<td>指定从哪个 HTTP 请求头获取真实 IP。Cloudflare 使用 <code>CF-Connecting-IP</code></td>
+</tr>
+<tr>
+<td><code>RemoteIPTrustedProxy</code></td>
+<td>声明哪些代理 IP 是可信的，<strong>只有来自这些 IP 的请求才会被替换 IP</strong></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>⚠️ <strong>安全提示</strong>：不要使用 <code>RemoteIPTrustedProxy 0.0.0.0/0</code> 等通配规则，攻击者可以伪造 <code>CF-Connecting-IP</code> 请求头来欺骗服务器。</p>
+</blockquote>
+<hr>
+<h3>第三步：修改日志格式（推荐）</h3>
+<p>将 <code>%h</code> 替换为 <code>%a</code>，这让日志语义更明确：</p>
+<pre><code># 先备份
+cp /etc/httpd/conf/httpd.conf /etc/httpd/conf/httpd.conf.bak
+
+# 修改
+sed -i 's/^    LogFormat &quot;%h /    LogFormat &quot;%a /' /etc/httpd/conf/httpd.conf
+
+
+bash
+</code></pre>
+<p>修改前后对比：</p>
+<pre><code>- LogFormat &quot;%h %l %u %t \&quot;%r\&quot; %&gt;s %b \&quot;%{Referer}i\&quot; \&quot;%{User-Agent}i\&quot;&quot; combined
++ LogFormat &quot;%a %l %u %t \&quot;%r\&quot; %&gt;s %b \&quot;%{Referer}i\&quot; \&quot;%{User-Agent}i\&quot;&quot; combined
+
+
+diff
+</code></pre>
+<table>
+<thead>
+<tr>
+<th>占位符</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>%h</code></td>
+<td>远程主机名（默认情况下即对端 IP）</td>
+</tr>
+<tr>
+<td><code>%a</code></td>
+<td>经过 <code>mod_remoteip</code> 处理后的真实客户端 IP</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p>💡 实际上 <code>mod_remoteip</code> 配置正确后，<code>%h</code> 也会显示真实 IP。但使用 <code>%a</code> 语义更清晰，是 Cloudflare 官方推荐的最佳实践。</p>
+</blockquote>
+<hr>
+<h3>第四步：测试并重启</h3>
+<pre><code># 1. 检查配置语法
+apachectl configtest
+# 输出: Syntax OK
+
+# 2. 重启 Apache
+systemctl restart httpd
+
+# 3. 确认服务状态
+systemctl status httpd
+
+
+bash
+</code></pre>
+<hr>
+<h3>第五步：验证效果</h3>
+<h4>方法一：curl 模拟测试</h4>
+<pre><code>curl -s -H &quot;CF-Connecting-IP: 1.2.3.4&quot; http://localhost/ -o /dev/null
+tail -1 /var/log/httpd/access_log
+
+
+bash
+</code></pre>
+<p>访问日志中应显示 <code>1.2.3.4</code> 而非 <code>127.0.0.1</code>。</p>
+<h4>方法二：实际访问验证</h4>
+<p>从外部访问网站，检查日志中的 IP 是否为真实访客 IP（而非 Cloudflare 的 IP 段）。</p>
+<hr>
+<h3>常见问题</h3>
+<h4>Q: 配置后仍然显示 Cloudflare IP？</h4>
+<ol>
+<li>确认 <code>remoteip.conf</code> 放在了 <code>/etc/httpd/conf.d/</code> 目录下</li>
+<li>检查 Cloudflare IP 段是否最新：https://www.cloudflare.com/ips/</li>
+<li>确认请求确实经过了 Cloudflare（检查是否存在 <code>CF-Connecting-IP</code> 请求头）</li>
+</ol>
+<h4>Q: mod_remoteip 和 mod_cloudflare 有什么区别？</h4>
+<table>
+<thead>
+<tr>
+<th>对比</th>
+<th>mod_cloudflare</th>
+<th>mod_remoteip</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>维护状态</td>
+<td>已弃用</td>
+<td>活跃维护</td>
+</tr>
+<tr>
+<td>来源</td>
+<td>第三方模块</td>
+<td>Apache 内置</td>
+</tr>
+<tr>
+<td>安装方式</td>
+<td>需手动编译</td>
+<td>系统自带</td>
+</tr>
+</tbody>
+</table>
+<h4>Q: 需要定期更新 Cloudflare IP 段吗？</h4>
+<p>建议定期检查。Cloudflare 的 IP 段不常变动，但偶尔会有新增。可以考虑编写 cron 脚本自动
+拉取
+更新：</p>
+<pre><code># 示例：每月自动更新 Cloudflare IP 段
+curl -s https://www.cloudflare.com/ips-v4/ &gt; /tmp/cf-ips.txt
+
+
+bash
+</code></pre>
+<hr>
+<h3>总结</h3>
+<p>通过三步即可完成配置：</p>
+<ol>
+<li><strong>创建 <code>remoteip.conf</code></strong> — 信任 Cloudflare IP 段，使用 <code>CF-Connecting-IP</code> 头</li>
+<li><strong>修改 LogFormat</strong> — <code>%h</code> → <code>%a</code>（最佳实践）</li>
+<li><strong>重启 Apache</strong> — 使配置生效</li>
+</ol>
+<p>配置完成后，Apache 日志将正确记录访客的真实 IP，便于后续的日志分析和安全审计。</p>
+<hr>
+<h3>参考 链接</h3>
+<ul>
+<li>Cloudflare 官方文档 - Restoring Original Visitor IPs</li>
+<li>Cloudflare IP Ranges</li>
+<li>Apache mod_remoteip 文档</li>
+</ul>
+<hr>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/162042087" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

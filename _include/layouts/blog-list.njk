@@ -1,0 +1,49 @@
+---
+---
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <title>博客 · Shepherd Zhu</title>
+  <base target="_parent">
+  <style>
+    /* Inline minimal reset — the host page provides full styles */
+    body { margin: 0; font-family: "Montserrat", sans-serif; }
+    .blog-list-section { padding: 0; }
+  </style>
+</head>
+<body>
+  <div class="blog-list-section">
+    <!-- Filter bar -->
+    <div class="blog-filter">
+      <button type="button" class="active" data-filter="all">全部</button>
+      <button type="button" data-filter="IT 运维">IT 运维</button>
+      <button type="button" data-filter="Unity 开发">Unity 开发</button>
+      <button type="button" data-filter="Windows Server">Windows Server</button>
+      <button type="button" data-filter="其他">其他</button>
+    </div>
+
+    <!-- Post list -->
+    <div class="blog-post-list">
+      {% for post in collections.post | reverse %}
+      <div class="blog-post-item" data-category="{{ post.data.categories }}" data-slug="{{ post.fileSlug }}">
+        <div class="blog-post-item-main">
+          <h3 class="blog-post-item-title">{{ post.data.title }}</h3>
+          <div class="blog-post-item-tags">
+            {% for tag in post.data.tags %}
+            {% if tag != "post" %}
+            <span>{{ tag }}</span>
+            {% endif %}
+            {% endfor %}
+          </div>
+          <p class="blog-post-item-summary">{{ post.data.summary }}</p>
+        </div>
+        <div class="blog-post-item-date">
+          {{ post.data.date | dateString }}
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

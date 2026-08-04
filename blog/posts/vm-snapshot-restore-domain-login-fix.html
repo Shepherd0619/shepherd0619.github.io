@@ -1,0 +1,51 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">迁移/恢复快照后的Windows Server虚拟机无法域账号登录</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2025-02-14</span>
+      <span class="blog-post-category category-其他">其他</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">VMware</span>
+      
+      
+      
+      <span class="blog-post-tag">Windows Server</span>
+      
+      
+      
+      <span class="blog-post-tag">域控</span>
+      
+      
+      
+      <span class="blog-post-tag">快照</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <p>笔者最近在在调整AD证书环境时，误卸载了Web Enrollment，导致证书申请地址404，故恢复快照。</p>
+<p>但恢复几天前的快照后，无法使用域账号登录桌面。</p>
+<blockquote>
+<pre><code>The trust relationship between this workstation and the primary domain failed.
+</code></pre>
+</blockquote>
+<p>根本原因为域控上的计算机账户哈希与本机不一致，或者快照时间点后修改过密码，也有可能计算机账号被禁掉，故域控拒绝了验证请求。</p>
+<p>正常来说是需要管理员将设备leave后再join，但这不适合处理多台设备，时间成本较高。</p>
+<p>最快的办法为使用PowerShell去操作。</p>
+<p>我们可以先查一下当前域控auth状态：</p>
+<pre><code>Test-ComputerSecureChannel –Verbose
+</code></pre>
+<p>若为False，那么需要进行修复：</p>
+<pre><code>Test-ComputerSecureChannel -Repair -Credential woshub\administrator -Verbose
+</code></pre>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/145623670" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

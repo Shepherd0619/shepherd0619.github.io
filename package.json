@@ -1,0 +1,10 @@
+{
+  "name": "shepherd0619.github.io",
+  "private": true,
+  "devDependencies": {
+    "@11ty/eleventy": "^3.0.0"
+  },
+  "scripts": {
+    "build:blog": "npx @11ty/eleventy"
+  }
+}

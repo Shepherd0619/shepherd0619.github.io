@@ -160,3 +160,167 @@ function asideSectionTogglerBtn() {
         allSection[i].classList.toggle("open");
     }
 }
+
+
+// Blog Section
+(function () {
+  const blogSection = document.getElementById("blog");
+  const blogContainer = document.getElementById("blog-container");
+  const blogLoading = document.getElementById("blog-loading");
+  const blogLightbox = document.getElementById("blog-lightbox");
+  const blogLightboxInner = document.getElementById("blog-lightbox-inner");
+  const blogLightboxClose = blogLightbox ? blogLightbox.querySelector(".lightbox-close") : null;
+  let blogLoaded = false;
+
+  // Fetch and render blog list when user navigates to #blog
+  function loadBlogList() {
+    if (blogLoaded) return;
+    blogLoaded = true;
+
+    fetch("/blog/index.html")
+      .then(function (res) {
+        if (!res.ok) throw new Error("Blog list not found");
+        return res.text();
+      })
+      .then(function (html) {
+        // Parse the fetched HTML and extract the blog list content
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, "text/html");
+        var listSection = doc.querySelector(".blog-list-section");
+        if (!listSection) throw new Error("Blog list section not found");
+
+        // Insert content
+        blogContainer.innerHTML = "";
+        blogContainer.appendChild(listSection);
+
+        // Hide loading indicator
+        if (blogLoading) blogLoading.style.display = "none";
+
+        // Wire up filter buttons
+        wireBlogFilters();
+        // Wire up post click handlers
+        wireBlogPostClicks();
+      })
+      .catch(function (err) {
+        console.error("Failed to load blog list:", err);
+        blogContainer.innerHTML =
+          '<p style="text-align:center;padding:40px;color:#504e70;">加载博客列表失败，请稍后重试。</p>';
+        if (blogLoading) blogLoading.style.display = "none";
+      });
+  }
+
+  // Category filter
+  function wireBlogFilters() {
+    var filterContainer = blogContainer.querySelector(".blog-filter");
+    if (!filterContainer) return;
+    var filterBtns = filterContainer.children;
+    var postItems = blogContainer.querySelectorAll(".blog-post-item");
+
+    for (var i = 0; i < filterBtns.length; i++) {
+      filterBtns[i].addEventListener("click", function () {
+        // Update active state
+        var activeBtn = filterContainer.querySelector(".active");
+        if (activeBtn) activeBtn.classList.remove("active");
+        this.classList.add("active");
+
+        var filterValue = this.getAttribute("data-filter");
+        for (var k = 0; k < postItems.length; k++) {
+          if (filterValue === "all") {
+            postItems[k].classList.remove("hide");
+          } else if (postItems[k].getAttribute("data-category") === filterValue) {
+            postItems[k].classList.remove("hide");
+          } else {
+            postItems[k].classList.add("hide");
+          }
+        }
+      });
+    }
+  }
+
+  // Post click → fetch post content → show in lightbox
+  function wireBlogPostClicks() {
+    var postItems = blogContainer.querySelectorAll(".blog-post-item");
+    for (var i = 0; i < postItems.length; i++) {
+      postItems[i].addEventListener("click", function () {
+        var slug = this.getAttribute("data-slug");
+        if (!slug) return;
+        fetchPostContent(slug);
+      });
+    }
+  }
+
+  function fetchPostContent(slug) {
+    blogLightboxInner.innerHTML =
+      '<div class="blog-loading"><div class="loader"></div></div>';
+    blogLightbox.classList.add("open");
+    document.body.style.overflow = "hidden";
+
+    fetch("/blog/posts/" + slug + ".html")
+      .then(function (res) {
+        if (!res.ok) throw new Error("Post not found");
+        return res.text();
+      })
+      .then(function (html) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, "text/html");
+        var article = doc.querySelector(".blog-post-content");
+        if (!article) throw new Error("Post content not found");
+        blogLightboxInner.innerHTML = "";
+        blogLightboxInner.appendChild(article);
+      })
+      .catch(function (err) {
+        console.error("Failed to load post:", err);
+        blogLightboxInner.innerHTML =
+          '<p style="text-align:center;padding:40px;color:#504e70;">加载文章失败，请稍后重试。</p>';
+      });
+  }
+
+  // Close blog lightbox
+  function closeBlogLightbox() {
+    blogLightbox.classList.remove("open");
+    document.body.style.overflow = "";
+    // Clear content after transition
+    setTimeout(function () {
+      blogLightboxInner.innerHTML = "";
+    }, 300);
+  }
+
+  // Click close button
+  if (blogLightboxClose) {
+    blogLightboxClose.addEventListener("click", closeBlogLightbox);
+  }
+
+  // Click backdrop
+  blogLightbox.addEventListener("click", function (event) {
+    if (event.target === blogLightbox) {
+      closeBlogLightbox();
+    }
+  });
+
+  // ESC to close
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && blogLightbox.classList.contains("open")) {
+      closeBlogLightbox();
+    }
+  });
+
+  // Hook into existing navigation: load blog list when #blog section becomes active
+  var blogNavLink = document.querySelector('.nav a[href="#blog"]');
+  if (blogNavLink) {
+    blogNavLink.addEventListener("click", function () {
+      setTimeout(loadBlogList, 100); // Wait for section transition
+    });
+  }
+
+  // Also watch for direct URL hash changes
+  window.addEventListener("hashchange", function () {
+    if (window.location.hash === "#blog") {
+      setTimeout(loadBlogList, 100);
+    }
+  });
+
+  // Load on initial page load if hash is #blog
+  if (window.location.hash === "#blog") {
+    setTimeout(loadBlogList, 100);
+  }
+})();

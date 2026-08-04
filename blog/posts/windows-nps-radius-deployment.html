@@ -1,0 +1,102 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">生产环境云和NPS快速搭建</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2025-02-02</span>
+      <span class="blog-post-category category-windows-server">Windows Server</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Windows Server</span>
+      
+      
+      
+      <span class="blog-post-tag">NPS</span>
+      
+      
+      
+      <span class="blog-post-tag">RADIUS</span>
+      
+      
+      
+      <span class="blog-post-tag">802.1X</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <h2>前置条件</h2>
+<p>本文假定你已达成以下前提条件：</p>
+<ul>
+<li>有域控DC。</li>
+<li>有证书服务器（AD CS）。</li>
+<li>已使用Microsoft Intune或者GPO为客户机申请证书。</li>
+<li>服务器上至少有两张网卡（如果用虚拟机做的测试环境，可以用一张HostOnly网卡做测试）。</li>
+</ul>
+<p>阅读本文后，你应该会：</p>
+<ul>
+<li>安装和配置生产环境云。</li>
+<li>安装和配置NPS，并配置RADIUS实现证书验证。</li>
+<li>使用客户机进行生产环境云网关连接验证和路由表验证。</li>
+</ul>
+<h2>服务端</h2>
+<p>打开服务器管理器，添加所需角色。</p>
+<p>（注：下图笔者环境中，DC也有NPS。这里笔者勾上NPS是为了做负载均衡和RADIUS请求转发。）</p>
+<p><img src="/blog/images/8ff6a2741b2b.png" alt=""><img src="/blog/images/f224ce3e24c9.png" alt=""></p>
+<p> 安装完成后，启动初始化向导。</p>
+<p><img src="/blog/images/0ca8f9133559.png" alt=""><img src="/blog/images/32e78268d65c.png" alt=""></p>
+<p>选择仅部署生产环境云。</p>
+<p><img src="/blog/images/5ba814b31a45.png" alt=""></p>
+<p>打开路由和远程访问MMC控制台，右键本机服务器，开始配置。</p>
+<p><img src="/blog/images/3f403a384af3.png" alt=""><img src="/blog/images/0033fe461807.png" alt=""></p>
+<p>这里选择要监听的网卡，另一张网卡将被用于转发。</p>
+<p><img src="/blog/images/3e0bb2312cbd.png" alt=""></p>
+<p> 配置完成后，需要安装NPS。NPS请视你内网环境情况安装在对应的服务器上，也可安装在本机。</p>
+<p>NPS安装后，打开其控制台，选择配置生产环境云或拨号，并视情况配置验证方式。</p>
+<p><img src="/blog/images/69af1fd126be.png" alt=""></p>
+<p>由于本文笔者使用的是证书环境，故选择智能卡或其他证书方式，并选择正确的CA。</p>
+<p><img src="/blog/images/819a7e9b79de.png" alt=""></p>
+<h2></h2>
+<p>如果NPS并不是在生产环境云网关服务器上安装，那么一旦连接请求策略和网络请求策略创建成功，你需要先创建出来RADIUS客户端并记住其密钥。</p>
+<p><img src="/blog/images/6f51e223e5af.png" alt=""></p>
+<p>然后你需要立即修改生产环境云的验证方式为RADIUS，并将RADIUS服务器地址和密钥输入。</p>
+<p><img src="/blog/images/0f89d604882e.png" alt=""></p>
+<p><img src="/blog/images/3064785a13dd.png" alt=""></p>
+<h2>客户端</h2>
+<p>如果你使用Microsoft Intune做设备管理和证书申请，那么你只需要添加一个Device Configuration即可。</p>
+<p><img src="/blog/images/8b37b80d5bc5.png" alt=""></p>
+<p><img src="/blog/images/388dec725f02.png" alt="">在Authentication certificate中选择你的SCEP profile或PKCS profile。 <img src="/blog/images/8a8b7e22e1d9.png" alt=""></p>
+<p>有关EAP，请参考EAP configuration | Microsoft Learn。大致思路为在测试机上做一个连接模板，使用
+PowerShell
+输出XML粘贴到这里。</p>
+<p>如果不是Intune，那么请直接运行rasphone去创建连接，并参考下图配置验证。</p>
+<p><img src="/blog/images/c6a990cb76d3.png" alt=""></p>
+<p><img src="/blog/images/d942180275ab.png" alt=""></p>
+<p>连接成功后，使用tracert命令验证，确保第一跳是我们的虚拟网关服务器。</p>
+<p><img src="/blog/images/d347acdb3156.png" alt=""></p>
+<h2>常见问题</h2>
+<h3>连接后无互联网连接</h3>
+<p>首先检查用于转发的网卡（如上图的Ethernet 2）是否有互联网访问，确认路由表是否异常。</p>
+<p>如果本身不支持上网，只用于内网机器互访，那么请修改以下配置来避免所有流量全部经过生产环境云网关。</p>
+<p><img src="/blog/images/cb539334cdf7.png" alt=""></p>
+<p>对于Intune，可以配置
+Split
+Tunneling来实现。</p>
+<p><img src="/blog/images/c3c595d0b6e5.png" alt=""></p>
+<h3>连接请求 timeout 或被ignore</h3>
+<p>一般建议直接去服务器上的事件查看器排查。对于笔者的环境来说，是因为Accounting在写入日志时出了问题。推荐使用SQL Server去做或者两者结合去做，而不是依赖本地文本文档。</p>
+<p><img src="/blog/images/68296e69f008.png" alt=""></p>
+<p>默认情况下，如果日志写入失败，是要直接忽略掉连接。</p>
+<p><img src="/blog/images/9f2821821818.png" alt=""></p>
+<p>另一个可以排查的点是数据库用户权限（如果你用SQL Server做日志记录），确认一下服务器身份验证模式和成员身份。</p>
+<p><img src="/blog/images/bb7469e76b37.png" alt=""></p>
+<p><img src="/blog/images/2eb321becbb0.png" alt=""></p>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/145422844" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

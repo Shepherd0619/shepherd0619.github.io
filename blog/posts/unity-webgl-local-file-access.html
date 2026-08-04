@@ -1,0 +1,62 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">WebGL读取本机硬盘上的文件</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2023-12-26</span>
+      <span class="blog-post-category category-unity-开发">Unity 开发</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Unity</span>
+      
+      
+      
+      <span class="blog-post-tag">WebGL</span>
+      
+      
+      
+      <span class="blog-post-tag">文件系统</span>
+      
+      
+      
+      <span class="blog-post-tag">浏览器</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <p>由于浏览器的安全设置，System.IO的大部分功能都会受限。本文假设你要在Unity做一个头像上传的功能，这里我提供一个通过Unity和JavaScript实现的方法。</p>
+<p>先在工程里起一个Plugins文件夹，用文本编辑器新建一个FileUploader.jslib。</p>
+<p>在工程里起一个WebGLTemplate文件夹，在里头再新建一个文件夹，名字随意，这里存放着WebGL打包用到的HTML模板。<strong>你可以先把Unity自带的先复制进去。</strong></p>
+<p><strong>不管你最后基于哪个模板改，你都得在html里再加个JavaScript函数</strong></p>
+<p>其中FileOpenDialog是<strong>GameObject名（这个就相当于Unity里GameObject.SendMessage）</strong>，OnFileSelected顾名思义是<strong>回调</strong>，我们把本地中的文件以JSON形式发送给Unity，里头包含blob地址和
+文件名
+。</p>
+<p>然后还得再加个隐藏的Input元素来接收选择的文件，例如：</p>
+<pre><code>&lt;input id=&quot;upload&quot; type=&quot;file&quot; style=&quot;display:none&quot; onchange=&quot;onFileSelected(event)&quot;&gt;
+
+html
+</code></pre>
+<p>这样，就可以在其他地方直接调用<code>OpenFileDialog</code>方法来打开文件选择
+对话框
+。</p>
+<p>调用方式见如下：</p>
+<pre><code>1. // 通过JavaScript函数来触发文件选择对话框
+2. Application.ExternalEval(@&quot;
+3. document.getElementById('upload').click();
+4. &quot;);
+
+
+cs运行
+</code></pre>
+<p>回调以及文件内容的读取可以参考这个：</p>
+<p><strong>拿到的blob地址一定要用UnityWebRequest去读并拿到二进制数据，切记！</strong></p>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/135232001#comments_34853683" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>

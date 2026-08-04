@@ -1,0 +1,120 @@
+<article class="blog-post-content">
+  <header class="blog-post-header">
+    <h2 class="blog-post-title">解决 TP-Link USB 无线网卡在 Linux/PVE 下识别为存储设备的问题</h2>
+    <div class="blog-post-meta">
+      <span class="blog-post-date"><i class="fa fa-calendar"></i> 2026-04-06</span>
+      <span class="blog-post-category category-it-运维">IT 运维</span>
+    </div>
+    <div class="blog-post-tags">
+      
+      
+      
+      
+      <span class="blog-post-tag">Linux</span>
+      
+      
+      
+      <span class="blog-post-tag">PVE</span>
+      
+      
+      
+      <span class="blog-post-tag">USB</span>
+      
+      
+      
+      <span class="blog-post-tag">网卡驱动</span>
+      
+      
+      
+      <span class="blog-post-tag">udev</span>
+      
+      
+    </div>
+  </header>
+  <div class="blog-post-body">
+    <p>在使用 Proxmox VE (PVE) 或
+Ubuntu
+虚拟机时，很多新款的 TP-Link 免驱 USB 无线网卡（如采用 <strong>AIC8800</strong> 芯片的型号）接入后，系统并不会将其识别为网卡（wlan），而是识别为一个“存储设备”（Mass Storage），导致无法联网。</p>
+<p>本文记录了从模式切换到驱动安装的完整解决流程。</p>
+<hr>
+<h3>1. 问题现象</h3>
+<p>执行 <code>lsusb</code> 命令，发现网卡显示为：<br>
+<code>Bus 002 Device 010: ID a69c:5721 aicsemi Aic MSC</code><br>
+其中 <strong>MSC</strong> 代表 <strong>Mass Storage Class</strong>。这是因为厂家为了方便
+Windows
+用户，将驱动内置在了网卡的一块只读存储区中。在 Linux 下，我们需要强制它“变身”回网卡模式。</p>
+<hr>
+<h3>2. 核心步骤：模式切换 (USB-ModeSwitch)</h3>
+<p>我们需要使用 <code>usb-modeswitch</code> 工具发送特殊的 SCSI 指令，让网卡从存储模式切换到通信模式。</p>
+<h4>安装工具</h4>
+<pre><code>sudo apt update
+sudo apt install usb-modeswitch usb-modeswitch-data
+
+
+bash
+</code></pre>
+<h4>手动触发切换</h4>
+<p>针对 <code>a69c:5721</code> 这个 ID，执行以下指令：</p>
+<pre><code>sudo usb_modeswitch -v a69c -p 5721 -M &quot;5553424312345678000000000000061b000000020000000000000000000000&quot;
+
+
+bash
+</code></pre>
+<p>执行后，再次运行 <code>lsusb</code>，你会发现 ID 发生了变化，通常变为：<br>
+<code>ID 2357:0147 TP-Link AIC8800DC</code><br>
+<strong>注意：</strong> 如果你是在虚拟机中使用，切换瞬间设备会重连，请确保你的 PVE 透传设置能够捕获切换后的新设备（建议透传物理端口 Port）。</p>
+<hr>
+<h3>3. 解决驱动问题</h3>
+<p>即使模式切换成功，执行 <code>ip link</code> 可能依然看不到网卡接口。这是因为主流 Linux 内核尚未内置 AIC8800 系列的驱动。</p>
+<h4>推荐方案：官方驱动包</h4>
+<p>对于大多数用户，直接去 <strong>TP-Link 官网</strong> 搜索对应型号的 Linux 驱动是最稳妥的方案。</p>
+<ul>
+<li>
+<p><strong>下载</strong>：获取官方提供的 <code>.deb</code> 驱动安装包。</p>
+</li>
+<li>
+<p><strong>安装</strong>：</p>
+<pre><code>sudo dpkg -i tplink-driver-xxx.deb
+
+
+bash
+</code></pre>
+</li>
+</ul>
+<p>官方包通常会自动处理内核模块的加载和固件（Firmware）的放置。</p>
+<h4>备选方案：手动编译</h4>
+<p>如果官方没有 <code>.deb</code> 包，可以从
+GitHub
+寻找社区驱动（如 <code>lpw-git/aic8800</code>）：</p>
+<pre><code>git clone https://github.com/lpw-git/aic8800.git
+cd aic8800/aic8800_fdrv
+make -j$(nproc)
+sudo make install
+
+
+bash
+</code></pre>
+<hr>
+<h3>4. 自动化与持久化 (udev 规则)</h3>
+<p>为了避免每次重启都要手动运行切换命令，我们可以编写一条 <code>udev</code> 规则。</p>
+<p>创建文件：<code>/etc/udev/rules.d/40-tp-link-mode.rules</code><br>
+写入内容：</p>
+<pre><code>ACTION==&quot;add&quot;, SUBSYSTEM==&quot;usb&quot;, ATTRS{idVendor}==&quot;a69c&quot;, ATTRS{idProduct}==&quot;5721&quot;, RUN+=&quot;/usr/sbin/usb_modeswitch -v a69c -p 5721 -M '5553424312345678000000000000061b000000020000000000000000000000'&quot;
+
+
+bash
+</code></pre>
+<hr>
+<h3>5. 总结与建议</h3>
+<ul>
+<li><strong>识别身份</strong>：先看 <code>lsusb</code>，带 <code>MSC</code> 字样的都需要先做 <code>usb-modeswitch</code>。</li>
+<li><strong>透传技巧</strong>：在 PVE 环境下，透传 <strong>USB 物理端口 (Port)</strong> 比透传 <strong>设备 ID</strong> 更能应对模式切换带来的 ID 变更。</li>
+<li><strong>驱动备份</strong>：保存好那个 <code>.deb</code> 包，未来更新 Linux 内核后可能需要重新执行安装以触发 DKMS 重新编译。</li>
+</ul>
+<p>现在，你的网卡应该已经乖乖出现在 <code>ip link</code> 的列表里了！</p>
+
+  </div>
+  <footer class="blog-post-footer">
+    <a href="https://blog.csdn.net/u012587406/article/details/159893526#comments_39408213" target="_blank" rel="noopener">原文链接 <i class="fa fa-external-link"></i></a>
+  </footer>
+</article>
