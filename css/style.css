@@ -1490,9 +1490,11 @@ body.dark .timeline-text strong {
   /* Blog Lightbox: full-screen on mobile */
   .blog-lightbox {
     background-color: #f2f2fc;
+    padding: 0;
   }
   .blog-lightbox .lightbox-content {
     max-height: 100vh;
+    max-height: 100dvh;
     max-width: none;
     border-radius: 0;
     padding: 0 16px 20px;
@@ -1505,7 +1507,7 @@ body.dark .timeline-text strong {
     width: 100%;
     text-align: right;
     background: #fdf9ff;
-    padding: 8px 12px;
+    padding: max(8px, env(safe-area-inset-top)) 12px 8px;
     font-size: 28px;
     margin: 0 0 8px 0;
   }
