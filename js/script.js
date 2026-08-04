@@ -323,4 +323,18 @@ function asideSectionTogglerBtn() {
   if (window.location.hash === "#blog") {
     setTimeout(loadBlogList, 100);
   }
+
+  // Load when blog section scrolls into view (mobile scroll behavior)
+  if ("IntersectionObserver" in window) {
+    var blogObserver = new IntersectionObserver(function (entries) {
+      if (entries[0].isIntersecting) {
+        loadBlogList();
+        blogObserver.disconnect();
+      }
+    }, { rootMargin: "200px" });
+    blogObserver.observe(blogSection);
+  } else {
+    // Fallback for older browsers
+    setTimeout(loadBlogList, 500);
+  }
 })();
